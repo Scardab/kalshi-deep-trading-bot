@@ -1722,6 +1722,26 @@ class SimpleTradingBot:
             if not event_markets:
                 self.console.print("[red]No markets remaining after position filtering. Exiting.[/red]")
                 return
+
+            self.console.print(f"[dim]Sample event tickers: {list(event_markets.keys())[:5]}[/dim]")
+
+            # --- NBA only filter ---
+            NBA_PREFIX = "KXNBA"
+
+            before_count = len(event_markets)
+            event_markets = {
+                event_ticker: data
+                for event_ticker, data in event_markets.items()
+                if event_ticker.startswith(NBA_PREFIX)
+            }
+            self.console.print(
+                f"[blue]NBA filter applied: {before_count} -> {len(event_markets)} events[/blue]"
+            )
+
+            if not event_markets:
+                self.console.print("[red]No NBA events found after filtering. Exiting.[/red]")
+                return
+
             
             # Limit to max_events_to_analyze after position filtering
             if len(event_markets) > self.config.max_events_to_analyze:
@@ -1732,6 +1752,7 @@ class SimpleTradingBot:
                     volume_24h = event.get('volume_24h', 0)
                     filtered_events_list.append((event_ticker, data, volume_24h))
                 
+
                 # Sort by volume_24h (descending) and take top max_events_to_analyze
                 filtered_events_list.sort(key=lambda x: x[2], reverse=True)
                 top_events = filtered_events_list[:self.config.max_events_to_analyze]
